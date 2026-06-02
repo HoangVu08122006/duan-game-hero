@@ -1,0 +1,54 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+class PetController extends Controller
+{
+    /**
+     * Copy đoạn code của bạn vào đây
+     */
+    public function upgrade(Request $request)
+{
+    $player = $request->user();
+    
+    // Lấy pet đang được trang bị (is_equipped = 1) từ bảng player_pets
+    $activePet = $player->playerPets()->where('is_equipped', 1)->first();
+
+    if (!$activePet) {
+        return response()->json(['message' => 'Bạn chưa trang bị Pet nào!'], 404);
+    }
+
+    // Tính chi phí dựa trên level hiện tại
+    $currentPetLevel = $activePet->level; 
+    $cost = (int) round(100 * pow(1.1, $currentPetLevel - 1));
+
+    if ($player->gold < $cost) {
+        return response()->json(['message' => 'Không đủ vàng!'], 400);
+    }
+
+    // 1. Trừ vàng của Player
+    $player->gold -= $cost;
+    $player->save();
+
+    // 2. Tăng Level trong bảng player_pets
+    // Chắc chắn $activePet là instance của Model PlayerPet
+    $activePet->level += 1;
+    $activePet->save(); 
+
+    // 3. Lấy chỉ số mới (Gọi lại hàm tính toán Dame 10% và Skill 30/60/90)
+    // Giả sử bạn đã viết logic tính toán trong thuộc tính ảo hoặc hàm riêng
+    $skills = $this->calculatePetStats($activePet); 
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Nâng cấp thành công!',
+        'new_pet_level' => $activePet->level,
+        'gold_remaining' => $player->gold,
+        'damage_report' => $skills
+    ]);
+}
+}

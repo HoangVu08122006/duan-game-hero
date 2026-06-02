@@ -1,0 +1,97 @@
+<?php
+// routes/api.php
+use App\Http\Controllers\Api\AdminController;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\BattleController;
+use App\Http\Controllers\Api\HeroController;
+use App\Http\Controllers\Api\LeaderboardController;
+use App\Http\Controllers\Api\PetController;
+use App\Http\Controllers\Api\PlayerController;
+use App\Http\Controllers\Api\RewardController;
+use App\Http\Controllers\Api\UpgradeController;
+use App\Http\Controllers\Api\WeaponController;
+use Illuminate\Support\Facades\Route;
+
+
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/logout', [AuthController::class, 'logout']);
+
+Route::middleware('auth:sanctum')->group(function () {
+    // Lấy thông tin nhân vật
+    Route::get('/player/me', [AuthController::class, 'me']);
+    
+    // 1. API Triệu hồi quái (Đã làm ở bước trước)
+    Route::get('battle/spawn', [BattleController::class, 'spawn']);
+
+    // 2. API Xử lý kết quả trận đấu (Thắng/Thua tự động lùi tầng hoặc lên tầng)
+    Route::post('battle/defeat', [BattleController::class, 'defeat']);
+
+    // 3. API Bấm nút thủ công để tiến lên lại tầng cao nhất (Khi đang bị kẹt ở tầng dưới)
+    Route::post('battle/retry-highest-floor', [BattleController::class, 'retryHighestFloor']);
+    
+    // 4. API Lấy trạng thái hiển thị thông số trận đấu (Nếu có dùng)
+    Route::get('battle/status', [BattleController::class, 'getBattleStatus']);
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/player/save', [PlayerController::class, 'saveData']);
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/battle/spawn', [BattleController::class, 'spawn']);
+});
+
+// Đưa vào trong middleware auth:sanctum để bảo mật (chỉ người dùng đã đăng nhập mới nâng cấp được)
+Route::middleware('auth:sanctum')->group(function () {
+    
+    Route::post('/pet/upgrade', [PetController::class, 'upgrade']);
+    
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/player/pets', [PetController::class, 'getMyPets']);
+});
+
+Route::middleware('auth:sanctum')->prefix('hero')->group(function () {
+    // Nâng cấp chỉ số bằng Vàng
+    Route::post('/upgrade/attack', [HeroController::class, 'upgradeAttack']);
+    Route::post('/upgrade/hp', [HeroController::class, 'upgradeHP']);
+    Route::post('/upgrade/crit-rate', [HeroController::class, 'upgradeCritRate']);
+    Route::post('/upgrade/crit-damage', [HeroController::class, 'upgradeCritDamage']);
+    Route::post('/upgrade/speed', [HeroController::class, 'upgradeSpeed']);
+
+    // API để test cộng EXP (Hệ thống sẽ tự động check level up)
+    Route::post('/add-exp', [HeroController::class, 'addExp']);
+});
+
+
+Route::middleware('auth:sanctum')->group(function () {
+    // API nâng cấp: truyền id của bản ghi trong bảng player_weapons
+    Route::post('/weapon/upgrade', [WeaponController::class, 'upgrade']);
+    
+    // API trang bị vũ khí
+    Route::post('/weapon/equip', [WeaponController::class, 'equip']);
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+    // Thêm dòng này
+    Route::get('/player/weapons', [WeaponController::class, 'index']);
+});
+
+Route::get('/leaderboard/top100', [LeaderboardController::class, 'getTop100']);
+
+// Route lấy hạng của tôi (Truyền ID của player vào url)
+Route::get('/leaderboard/my-rank/{playerId}', [LeaderboardController::class, 'getMyRank']);
+
+// Lấy giao diện / trạng thái các ngày điểm danh của người chơi
+Route::get('/daily-reward/status/{playerId}', [RewardController::class, 'getRewardStatus']);
+
+// Gửi lệnh nhận thưởng ngày hôm nay
+Route::post('/daily-reward/claim/{playerId}', [RewardController::class, 'claimReward']);
+//danh sach nguoi choi
+Route::get('list/players', [AdminController::class, 'index']);
+//xem chi tiết tk player
+Route::get('/list/players/{id}', [AdminController::class, 'show']);
+//Xóa tài khoản
+Route::delete('/list/players/{id}', [PlayerController::class, 'destroy']);
