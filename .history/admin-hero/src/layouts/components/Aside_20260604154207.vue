@@ -1,0 +1,49 @@
+<template>
+  <el-aside width="240px" class="app-aside">
+    <el-menu
+      :router="true"
+      :default-active="route.path"
+      class="side-menu"
+      background-color="#304156"
+      text-color="#bfcbd9"
+      active-text-color="#409EFF"
+    >
+      <el-menu-item index="/dashboard/account-logs">
+              <el-icon><Monitor /></el-icon>
+              <span>Lịch Sử Tạo TK</span>
+            </el-menu-item>
+
+            <el-menu-item index="/dashboard/players">
+              <el-icon><User /></el-icon>
+              <span>Quản Lý Người Chơi</span>
+            </el-menu-item>
+
+            <el-menu-item index="/dashboard/weapons">
+            <el-icon><Knife /></el-icon>
+            <span>Quản Lý Vũ Khí</span>
+            </el-menu-item>
+            
+            <el-menu-item index="/dashboard/giftcodes">
+              <el-icon><Ticket /></el-icon>
+              <span>Quản Lý Giftcode</span>
+            </el-menu-item>
+    </el-menu>
+  </el-aside>
+</template>
+
+<script setup>
+import { Grid } from '@element-plus/icons-vue' // Thử icon này thay cho Knife
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
+</script>
+
+<style scoped>
+.app-aside {
+  background-color: #304156;
+}
+.side-menu {
+  border-right: none;
+  height: 100%;
+}
+</style>
